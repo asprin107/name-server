@@ -4,6 +4,7 @@ BIND_HOME=/etc
 BIND_CONFIG_FILE=named.conf
 BIND_PORT=8053
 
+DOMAIN_HOME=/var/named
 
 BIND_V4_CONFIG="listen-on port $BIND_PORT { 127.0.0.1; };"
 BIND_V6_CONFIG="listen-on port $BIND_PORT { none; };"
@@ -14,6 +15,7 @@ D_BIND_V6_CONFIG="listen-on port 53 { ::1; };"
 D_RECURION_CONFIG="recursion yes;"
 
 TAB=$(echo -e "\t")
+DATE=$(date '+%y%m%d')
 
 function LINE_CHK() {
   for L in $1; do
@@ -46,10 +48,25 @@ LINE_CHK $RECURSION_LINE "$RECURION_CONFIG" "$D_RECURION_CONFIG" "bind server al
 # 설정 확인
 named-checkconf
 # SELinux 설정
-semanage port -a -t dns_port_t -p tcp 8053
+semanage port -a -t dns_port_t -p tcp $BIND_PORT
+
+
+DOMAIN_ZONE_FILE=${DOMAIN_HOME}/${SUB_DOMAIN}.${DOMAIN}.db
+echo '$TTL 3h' >> $DOMAIN_ZONE_FILE
+echo '@ IN SOA n1.centos7.home. admin.'"${DOMAIN}"'.(' >> $DOMAIN_ZONE_FILE
+echo "$DATE$TAB; Serial yyyymmddnn" >> $DOMAIN_ZONE_FILE
+echo "3h$TAB$TAB; Refresh After 3 hours" >> $DOMAIN_ZONE_FILE
+echo "1h$TAB$TAB; Retry after 1hour" >> $DOMAIN_ZONE_FILE
+echo "1w$TAB$TAB; Expire after 1 week" >> $DOMAIN_ZONE_FILE
+echo "1h$TAB$TAB; Minimum negative caching" >> $DOMAIN_ZONE_FILE
+echo '' >> $DOMAIN_ZONE_FILE
+
 
 
 # 순방향 db 파일 생성
+################################################################################
+# DNS ZONE format
+################################################################################
 # $TTL 3h
 # @ IN SOA n1.centos7.home. admin.centos7.home.(
 # 20190415  ; Serial yyyymmddnn
@@ -57,21 +74,32 @@ semanage port -a -t dns_port_t -p tcp 8053
 # 1h        ; Retry after 1 hour
 # 1w        ; Expire after 1 week
 # 1h        ; Minimum regative caching
-
+#
 # ; add your name servers here for your domain
-  # IN  NS  ns1.centos7.home.
+#   IN  NS  ns1.centos7.home.
 # ; add your mail server here for you domain
-  # IN  MX  10  mailhost.centos7.home.
+#   IN  MX  10  mailhost.centos7.home.
 # ; now follows the actual domain name to IP
 # ; address mappings:
-
+#
 # ; first add all referenced hostnames from above
-# )
+# ns1       IN  A   192.168.1.7
+# mailhost  IN  A   192.168.1.8
+# ; add all accessible domain to ip mappings here
+# router    IN  A   192.168.1.0
+# www       IN  A   192.168.1.9
+# ftp       IN  A   192.168.1.10
+# ; add all the private clients on the Lan here
+# client1   IN  A   192.168.1.11
+# client2   IN  A   192.168.1.12
+# client3   IN  A   192.168.1.13
+# ; finally we can define some aliases for
+# ; existing domain name mappings
+# webserver IN  CNAME www
+# johnny    IN  CNAME client2
+################################################################################
 
-# '$TTL 3h'
-# '@ IN SOA n1.centos7.home. admin.centos7.home.('
-# '20190415'"$TAB"'; Serial yyyymmddnn'
-# '3h'"$TAB$TAB$TAB"'Refresh After 3 hours'
+
 
 # 역방향 db 파일 생성
 

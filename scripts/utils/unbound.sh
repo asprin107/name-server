@@ -24,6 +24,8 @@ ALLOW_CONFIG="access-control: $ALLOW_IP4 allow"
 REFUES_CONFIG="access-control: $REFUSE_IP4 refuse"
 LOG_CONFIG="logfile: \"\/etc\/unbound\/$LOG_FILE\""
 USAGE_SYS_LOG="use-syslog: no"
+FORWARD_IP="8.8.8.8"
+
 
 TAB=$(echo -e '\t')
 D_BIND_CONFIG="$TAB# interface: 0.0.0.0"
@@ -59,7 +61,7 @@ LINE_CHK $USAGE_SYS_LOG_LINE "$TAB$USAGE_SYS_LOG" "$D_USAGE_SYS_LOG" "unbound se
 
 echo 'forward-zone:' >> $UNBOUND_HOME/$UNBOUND_CONFIG
 echo "${TAB}name: \".\"" >> $UNBOUND_HOME/$UNBOUND_CONFIG
-echo "${TAB}forward-addr: 8.8.8.8" >> $UNBOUND_HOME/$UNBOUND_CONFIG
+echo "${TAB}forward-addr: $FORWARD_IP" >> $UNBOUND_HOME/$UNBOUND_CONFIG
 
 
 # Create Log file
